@@ -1,13 +1,8 @@
 import gulp from "gulp";
 import {spawn} from "child_process";
 import hugoBin from "hugo-bin";
-import gutil from "gulp-util";
-import postcss from "gulp-postcss";
-import cssImport from "postcss-import";
-import cssnext from "postcss-cssnext";
+import sass from 'gulp-sass';
 import BrowserSync from "browser-sync";
-import webpack from "webpack";
-import webpackConfig from "./webpack.conf";
 
 const browserSync = BrowserSync.create();
 
@@ -20,41 +15,27 @@ gulp.task("hugo", (cb) => buildSite(cb));
 gulp.task("hugo-preview", (cb) => buildSite(cb, hugoArgsPreview));
 
 // Build/production tasks
-gulp.task("build", ["css", "js"], (cb) => buildSite(cb, [], "production"));
-gulp.task("build-preview", ["css", "js"], (cb) => buildSite(cb, hugoArgsPreview, "production"));
+gulp.task("build", ["styles"], (cb) => buildSite(cb, [], "production"));
+gulp.task("build-preview", ["styles"], (cb) => buildSite(cb, hugoArgsPreview, "production"));
 
 // Compile CSS with PostCSS
-gulp.task("css", () => (
-  gulp.src("./src/css/*.css")
-    .pipe(postcss([cssImport({from: "./src/css/main.css"}), cssnext()]))
-    .pipe(gulp.dest("./dist/css"))
+gulp.task("styles", () => (
+  gulp.src("./styles/main.sass")
+    .pipe(sass().on('error', sass.logError))
+    .pipe(gulp.dest("./dist/styles"))
     .pipe(browserSync.stream())
 ));
 
-// Compile Javascript
-gulp.task("js", (cb) => {
-  const myConfig = Object.assign({}, webpackConfig);
-
-  webpack(myConfig, (err, stats) => {
-    if (err) throw new gutil.PluginError("webpack", err);
-    gutil.log("[webpack]", stats.toString({
-      colors: true,
-      progress: true
-    }));
-    browserSync.reload();
-    cb();
-  });
-});
-
 // Development server with browsersync
-gulp.task("server", ["hugo", "css", "js"], () => {
+gulp.task("server", ["hugo", "styles"], () => {
   browserSync.init({
+    ui: false,
+    open: false,
     server: {
       baseDir: "./dist"
     }
   });
-  gulp.watch("./src/js/**/*.js", ["js"]);
-  gulp.watch("./src/css/**/*.css", ["css"]);
+  gulp.watch("./src/css/**/*.css", ["styles"]);
   gulp.watch("./site/**/*", ["hugo"]);
 });
 
