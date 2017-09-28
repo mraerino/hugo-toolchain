@@ -1,5 +1,5 @@
 {
-  "name": "hugo-toolchain",
+  "name": "bq-website",
   "version": "1.0.0",
   "main": "gulpfile.babel.js",
   "scripts": {
